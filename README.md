@@ -5,7 +5,7 @@ Twitter API client built in NodeJS &amp; ExpressJS
 
 Set up your project : 
 <br/>1. Get into root directory of node-tweety (cd node-tweety)
-<br/>2. Inside the root, run "npm install". This will install all dependencies stated in the package.json
+<br/>2. Inside the root, run "npm install" (you should have NPM installed on your machine first). This will install all dependencies stated in the package.json
 <br/>3. Once installing dependencies is done, you can run "node app.js". This will activate the server of this project and you could try accessing following Path / URL.
 
 Some paths supported in this project currently : 
@@ -19,3 +19,6 @@ Libraries use for this project :
 - https://github.com/AvianFlu/ntwitter
 - https://github.com/mikeal/request
 - https://github.com/felixge/node-mysql (Mysql functionality is still in progress)
+
+Usefull link :
+- http://dandean.com/nodejs-npm-express-osx/
