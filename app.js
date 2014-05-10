@@ -72,8 +72,6 @@ app.get('/read_dm', function (req,res) {
 });
 
 app.get('/twitter_callback', function(req, res){
-	console.log("Sucessfully Authenticated with Twitter...");
-
 	/**
 	* Include only Application Specific Tokens. User Sign-in with Twitter to get Ouath Tokens
 	* Default keys don't work. I am leaving them to make it easier to compare to screenshots found at
@@ -83,27 +81,35 @@ app.get('/twitter_callback', function(req, res){
 	*/
 
 	twit.gatekeeper()(req,res,function(){
-	req_cookie = twit.cookie(req);
-	twit.options.access_token_key = req_cookie.access_token_key;
-	twit.options.access_token_secret = req_cookie.access_token_secret;
+		req_cookie = twit.cookie(req);
+		console.log("Twauth Cookie : >>> ");
+		console.log(req_cookie);
+		twit.options.access_token_key = req_cookie.access_token_key;
+		twit.options.access_token_secret = req_cookie.access_token_secret;
 
-	twit.verifyCredentials(function (err, data) {
-	  console.log("Verifying Credentials...");
-	  if(err)
-	    console.log("Verification failed : " + err)
-	})
-	.getHomeTimeline('',
-	  function (err, data) {
-	    console.log("Timeline Data Returned...");
-	    // console.log(data);
+		//twit.options.access_token_key = "70086204-OxzfIfarJOiNx1sLO8svziwWEqfF083Bj0tiO9B5e";
+		//twit.options.access_token_secret = "1SzAV3SeZ0OGDpRtS9NOMIkaGJ0QCwiNVrE2YZNR9k7Dz";
 
-	    var view_data = {
-	      "timeline" : JSON.stringify(data)
-	    }
+		twit.verifyCredentials(function (err, data) {
+		  console.log("Verifying Credentials...");
+		  if(err)
+		    console.log("Verification failed : " + err)
 
-	    console.log("Exiting Controller.");
-	    res.send(view_data);
-	  });
+			console.log("Sucessfully Authenticated with Twitter...");
+			console.log("USER ACCOUNT >>>");
+			console.log("Name : "+data.name);
+			console.log("Twitter : "+data.screen_name);
+		})
+		.getHomeTimeline('',
+		  function (err, data) {
+		    console.log("Timeline Data Returned...");
+		    var view_data = {
+		      "timeline" : JSON.stringify(data)
+		    }
+
+		    console.log("Exiting Controller.");
+		    res.send(view_data);
+		  });
 	});
 });	
 
@@ -179,16 +185,21 @@ app.get('/twitter_stream', function (req,res) {
 	//-- Status Filter
 	twit.stream('statuses/filter', {'track':'#tes'}, function(stream) {
 	  stream.on('data', function (data) {
+	    console.log("========= Found Stream ==========");
 	    console.log("User Name : "+data.user.name);
 	    console.log("Screen Name : @"+data.user.screen_name);
 	    console.log("Twit Content : "+data.text);
-	    console.log("==================");
+	    console.log("=================================");
 
 	    twit.newDirectMessage(data.user.screen_name,'Hello '+data.user.name+', Thanks for helping testing :)', function (err,data) {
-			console.log("Direct Message was sent to :");
-			console.log(data);
-			console.log("ERROR : ");
-			console.log(err);
+			if (err != null) {
+				console.log("ERROR OCCURED WHEN SENDING DM : ");
+				console.log(err);
+				console.log("=================================");
+			} else {
+				console.log("Direct Message was sent to : @"+data.recipient.screen_name);
+				console.log("=================================");
+			}
 			//console.log("User Name : "+data.recipient.name);
 		    //console.log("Screen Name : @"+data.recipient.screen_name);
 		});
@@ -200,7 +211,12 @@ app.get('/twitter_stream', function (req,res) {
 
 app.get('/twitter_write', function (req,res) {
 	//-- Update Status
-	twit.updateStatus('API client testing : ' + twitter.VERSION,
+	var status = "Test on "+Date();
+	//twitter.VERSION
+	//console.log("TWIT object >>>");
+	//console.log(twit);
+	
+	twit.updateStatus(status,
 		function (err, data) {
 			if (err) {
 				console.log("Error occured : ");
@@ -214,5 +230,6 @@ app.get('/twitter_write', function (req,res) {
 })
 
 http.createServer(app).listen(app.get('port'), function(){
+  console.log(Date());
   console.log('Express server listening on port ' + app.get('port'));
 });
