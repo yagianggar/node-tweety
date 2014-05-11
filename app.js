@@ -15,8 +15,10 @@ var database = require('./libs/database.js'); // https://github.com/felixge/node
 var twitter = require("ntwitter"); //https://github.com/AvianFlu/ntwitter
 var twitterModule = require('./libs/twitterModule.js');
 var async = require('async');
+var async_process = require('./libs/async_process.js');
 var url = require('url');
 var twit = twitterModule.twit();
+var db_connect = database.connect();
 
 var app = express();
 
@@ -93,7 +95,32 @@ app.get('/twitter_callback', function(req, res){
 		twit.verifyCredentials(function (err, data) {
 		  console.log("Verifying Credentials...");
 		  if(err)
-		    console.log("Verification failed : " + err)
+		    console.log("Verification failed : " + err);
+
+			/* Check twitter credential first */
+			db_connect.query('SELECT * FROM twitter_account WHERE access_token_key="'+req_cookie.access_token_key+'" AND access_token_secret="'+req_cookie.access_token_secret+'"', function(err, rows, fields) {
+			  console.log("Checking existing credential");
+			  if (err) {
+			  	console.log("Error Occured : ");
+			  	console.log(err);
+			  } else {
+			  	if (rows.length === 0) {
+			  		/* Insert twitter credential to table */
+					var twitter_credential  = {screen_name: data.screen_name, name: data.name, access_token_key: req_cookie.access_token_key, access_token_secret: req_cookie.access_token_secret, status: "1"};
+					db_connect.query('INSERT INTO twitter_account SET ?', twitter_credential, function(err, rows, fields) {
+					  console.log("Inserting credential");
+					  if (err) {
+					  	console.log("Error Occured : ");
+					  	console.log(err);
+					  } else {
+					  	console.log("Data inserted!");
+					  }
+					});
+
+					//db_connect.end();
+			  	}
+			  }
+			});
 
 			console.log("Sucessfully Authenticated with Twitter...");
 			console.log("USER ACCOUNT >>>");
@@ -183,7 +210,7 @@ app.get('/twitter_stream', function (req,res) {
 	*/
 
 	//-- Status Filter
-	twit.stream('statuses/filter', {'track':'#tes'}, function(stream) {
+	twit.stream('statuses/filter', {'track':'@yagi_anggar'}, function(stream) {
 	  stream.on('data', function (data) {
 	    console.log("========= Found Stream ==========");
 	    console.log("User Name : "+data.user.name);
@@ -215,7 +242,7 @@ app.get('/twitter_write', function (req,res) {
 	//twitter.VERSION
 	//console.log("TWIT object >>>");
 	//console.log(twit);
-	
+
 	twit.updateStatus(status,
 		function (err, data) {
 			if (err) {
@@ -227,7 +254,10 @@ app.get('/twitter_write', function (req,res) {
 		  	
 		}
 	);
-})
+});
+
+//-- Run this method to start async process
+//async_process.start_process(db_connect,twitterModule);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log(Date());
