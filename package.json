@@ -12,6 +12,7 @@
     "request": "*",
     "mysql" : "*",
     "ntwitter" : "*",
-    "async" : "*"
+    "async" : "*",
+    "MD5" : "*"
   }
 }
